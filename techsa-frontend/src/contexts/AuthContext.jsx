@@ -1,23 +1,44 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
+import { authApi } from "../services/api";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [currentUser, setCurrentUser] = useState(() => {
-    // TODO: Implement in Phase 2 — restore user from localStorage token
-    return null;
-  });
+  const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const login = (user, token) => {
-    // TODO: Implement in Phase 2
+  // On mount, restore session from stored token
+  useEffect(() => {
+    const token = localStorage.getItem("techsa_token");
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    authApi
+      .me()
+      .then((res) => setCurrentUser(res.data.member))
+      .catch(() => localStorage.removeItem("techsa_token"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const login = (member, token) => {
+    localStorage.setItem("techsa_token", token);
+    setCurrentUser(member);
   };
 
-  const logout = () => {
-    // TODO: Implement in Phase 2
+  const logout = async () => {
+    try {
+      await authApi.logout();
+    } catch {
+      // Token may already be expired — still clear locally
+    } finally {
+      localStorage.removeItem("techsa_token");
+      setCurrentUser(null);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ currentUser, login, logout }}>
+    <AuthContext.Provider value={{ currentUser, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

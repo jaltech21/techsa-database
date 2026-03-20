@@ -13,7 +13,17 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// TODO: Add 401 response interceptor in Phase 2 — redirect to /login
+// On 401 response, clear stale token and redirect to login
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("techsa_token");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
 
 export const authApi = {
   register: (data) => api.post("/api/v1/members", { member: data }),
@@ -24,7 +34,8 @@ export const authApi = {
 
 export const adminApi = {
   listMembers: () => api.get("/api/v1/admin/members"),
-  updateMember: (id, data) => api.patch(`/api/v1/admin/members/${id}`, { member: data }),
+  updateMember: (id, data) =>
+    api.patch(`/api/v1/admin/members/${id}`, { member: data }),
 };
 
 export default api;
