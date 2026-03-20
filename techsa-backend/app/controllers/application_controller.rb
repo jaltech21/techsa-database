@@ -5,6 +5,6 @@ class ApplicationController < ActionController::API
 
   def authenticate_admin!
     authenticate_member!
-    render json: { error: "Forbidden" }, status: :forbidden unless current_member&.admin?
+    render json: { error: "Forbidden" }, status: :forbidden unless current_member&.role_admin?
   end
 end

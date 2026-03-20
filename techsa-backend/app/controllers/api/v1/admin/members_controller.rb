@@ -4,9 +4,41 @@ module Api
       class MembersController < ApplicationController
         before_action :authenticate_admin!
 
-        # GET  /api/v1/admin/members
+        # GET /api/v1/admin/members
+        def index
+          members = Member.order(created_at: :asc)
+          render json: members.map { |m| member_json(m) }
+        end
+
         # PATCH /api/v1/admin/members/:id
-        # TODO: Implement in Phase 3
+        def update
+          member = Member.find(params[:id])
+          if member.update(member_params)
+            render json: member_json(member)
+          else
+            render json: { errors: member.errors.full_messages }, status: :unprocessable_entity
+          end
+        end
+
+        private
+
+        def member_params
+          params.require(:member).permit(:status)
+        end
+
+        def member_json(member)
+          {
+            id:                  member.id,
+            first_name:          member.first_name,
+            last_name:           member.last_name,
+            student_id:          member.student_id,
+            email:               member.email,
+            registration_number: member.registration_number,
+            status:              member.status,
+            role:                member.role,
+            created_at:          member.created_at
+          }
+        end
       end
     end
   end

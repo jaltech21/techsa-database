@@ -1,9 +1,40 @@
 module Api
   module V1
     class SessionsController < Devise::SessionsController
-      # POST /api/v1/members/sign_in
-      # DELETE /api/v1/members/sign_out
-      # TODO: Implement in Phase 1
+      respond_to :json
+      skip_before_action :authenticate_member!
+
+      private
+
+      # Called on successful sign-in — JWT is added to the Authorization response header
+      # automatically by devise-jwt; we only need to return the member body.
+      def respond_with(resource, _opts = {})
+        render json: {
+          message: "Logged in successfully",
+          member: member_json(resource)
+        }, status: :ok
+      end
+
+      # Called on sign-out
+      def respond_to_on_destroy
+        if current_member
+          render json: { message: "Logged out successfully" }, status: :ok
+        else
+          render json: { message: "No active session found" }, status: :unauthorized
+        end
+      end
+
+      def member_json(member)
+        {
+          id: member.id,
+          first_name: member.first_name,
+          last_name: member.last_name,
+          email: member.email,
+          registration_number: member.registration_number,
+          status: member.status,
+          role: member.role
+        }
+      end
     end
   end
 end

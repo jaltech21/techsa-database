@@ -1,0 +1,5 @@
+.env
+*.log
+tmp/
+storage/
+.byebug_history

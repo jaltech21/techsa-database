@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: techsa-backend
+    runtime: ruby
+    buildCommand: bundle install && bundle exec rails db:migrate
+    startCommand: bundle exec puma -C config/puma.rb
+    envVars:
+      - key: RAILS_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: techsa-db
+          property: connectionString
+      - key: DEVISE_JWT_SECRET_KEY
+        generateValue: true
+      - key: RAILS_MASTER_KEY
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: ADMIN_SEED_PASSWORD
+        sync: false
+
+databases:
+  - name: techsa-db
+    databaseName: techsa_production
+    user: techsa
