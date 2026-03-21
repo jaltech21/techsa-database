@@ -3,9 +3,7 @@ export default function AuthBrand() {
     <div className="hidden lg:flex flex-col justify-between bg-gradient-to-br from-indigo-700 via-indigo-600 to-indigo-500 text-white p-12 rounded-l-2xl">
       {/* Logo mark */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center font-bold text-white text-lg tracking-tight">
-          T
-        </div>
+        <img src="/techsa-logo.png" alt="TECHSA" className="h-10 w-10 object-contain" />
         <span className="text-xl font-bold tracking-tight">TECHSA</span>
       </div>
 

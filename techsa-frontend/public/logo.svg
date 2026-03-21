@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Rounded square background -->
+  <rect width="200" height="200" rx="40" fill="#4f46e5"/>
+
+  <!-- Circuit-style decorative lines -->
+  <line x1="30" y1="100" x2="60" y2="100" stroke="#818cf8" stroke-width="4" stroke-linecap="round"/>
+  <line x1="140" y1="100" x2="170" y2="100" stroke="#818cf8" stroke-width="4" stroke-linecap="round"/>
+  <line x1="100" y1="30" x2="100" y2="58" stroke="#818cf8" stroke-width="4" stroke-linecap="round"/>
+  <line x1="100" y1="142" x2="100" y2="170" stroke="#818cf8" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Corner dots -->
+  <circle cx="30" cy="100" r="5" fill="#a5b4fc"/>
+  <circle cx="170" cy="100" r="5" fill="#a5b4fc"/>
+  <circle cx="100" cy="30" r="5" fill="#a5b4fc"/>
+  <circle cx="100" cy="170" r="5" fill="#a5b4fc"/>
+
+  <!-- Bold T letterform -->
+  <rect x="52" y="62" width="96" height="18" rx="6" fill="white"/>
+  <rect x="88" y="62" width="24" height="76" rx="6" fill="white"/>
+</svg>

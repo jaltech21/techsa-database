@@ -22,10 +22,8 @@ export default function Navbar({ adminLink = false }) {
   return (
     <nav className="bg-white border-b border-gray-100 shadow-sm px-6 py-3 flex items-center justify-between">
       {/* Logo */}
-      <Link to="/dashboard" className="flex items-center gap-2 group">
-        <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-sm font-bold">
-          T
-        </div>
+      <Link to="/dashboard" className="flex items-center gap-2.5 group">
+        <img src="/techsa-logo.png" alt="TECHSA" className="h-8 w-8 object-contain" />
         <span className="text-base font-bold text-indigo-600 tracking-tight">TECHSA</span>
       </Link>
 
