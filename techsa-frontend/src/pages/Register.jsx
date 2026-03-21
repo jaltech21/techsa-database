@@ -5,6 +5,7 @@ import { useToast } from "../contexts/ToastContext";
 import { authApi } from "../services/api";
 import AuthBrand from "../components/AuthBrand";
 import Spinner from "../components/Spinner";
+import SuccessModal from "../components/SuccessModal";
 
 const INTERESTS = [
   { label: "Programming / Software Development", icon: "💻" },
@@ -76,6 +77,7 @@ export default function Register() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [newMember, setNewMember] = useState(null);
 
   const [form, setForm] = useState({
     first_name: "", last_name: "", student_id: "",
@@ -119,11 +121,11 @@ export default function Register() {
     }
     setLoading(true);
     try {
-      await authApi.register(form);
+      const regRes = await authApi.register(form);
       const loginRes = await authApi.login({ email: form.email, password: form.password });
       const token = loginRes.headers["authorization"]?.split(" ")[1];
       login(loginRes.data.member, token);
-      navigate("/dashboard");
+      setNewMember(regRes.data.member);
     } catch (err) {
       const msgs = err.response?.data?.errors;
       showToast(
@@ -137,6 +139,9 @@ export default function Register() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-indigo-50/40 to-slate-100 flex items-center justify-center px-4 py-10">
+      {newMember && (
+        <SuccessModal member={newMember} onClose={() => navigate("/dashboard")} />
+      )}
       <div className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl shadow-indigo-100/60 overflow-hidden grid lg:grid-cols-[300px_1fr]">
         <AuthBrand />
 
