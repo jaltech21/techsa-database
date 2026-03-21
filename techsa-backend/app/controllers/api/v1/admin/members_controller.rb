@@ -36,6 +36,15 @@ module Api
             registration_number: member.registration_number,
             status:              member.status,
             role:                member.role,
+            department:          member.department,
+            level:               member.level,
+            gender:              member.gender,
+            date_of_birth:       member.date_of_birth,
+            phone_number:        member.phone_number,
+            residential_area:    member.residential_area,
+            emergency_contact:   member.emergency_contact,
+            areas_of_interest:   member.areas_of_interest,
+            other_interests:     member.other_interests,
             created_at:          member.created_at
           }
         end
