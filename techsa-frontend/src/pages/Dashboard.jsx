@@ -83,7 +83,7 @@ export default function Dashboard() {
             <InfoRow label="Department" value={currentUser?.department} />
           </div>
           <div className="grid grid-cols-2 divide-x divide-gray-100">
-            <InfoRow label="Level / Year" value={currentUser?.level ? `${currentUser.level} Level` : null} />
+            <InfoRow label="Level / Year" value={currentUser?.level ?? null} />
             <InfoRow label="Gender" value={currentUser?.gender ? currentUser.gender.charAt(0).toUpperCase() + currentUser.gender.slice(1) : null} />
           </div>
           <InfoRow label="Date of Birth" value={currentUser?.date_of_birth} />

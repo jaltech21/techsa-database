@@ -13,7 +13,7 @@ const INTERESTS = [
   { label: "Hardware / Electronics", icon: "🔧" },
 ];
 
-const LEVELS = ["100", "200", "300", "400", "500", "Postgraduate"];
+const LEVELS = ["Degree Year 1", "Degree Year 2", "Degree Year 3", "Degree Year 4", "HND Year 1", "HND Year 2"];
 
 const STEPS = [
   { n: 1, label: "Personal" },
@@ -240,7 +240,7 @@ export default function Register() {
                       <Label required>Level / Year</Label>
                       <select name="level" value={form.level} onChange={handleChange} className={inp}>
                         <option value="">Select level…</option>
-                        {LEVELS.map((l) => <option key={l} value={l}>{l} Level</option>)}
+                        {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
                       </select>
                     </div>
                     <div>
