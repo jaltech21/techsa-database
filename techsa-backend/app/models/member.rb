@@ -22,22 +22,17 @@ class Member < ApplicationRecord
 
   private
 
-  # Generates a unique registration number in the format TSA-YYYY-XXX.
-  # Uses a pessimistic lock on the last matching row to prevent duplicates
-  # under concurrent registrations.
+  # Generates a unique registration number in the format TSA-YYYY-{INITIALS}-{RANDOM6}.
+  # e.g. TSA-2026-OJ-X8KM3P
+  # The 6-character random alphanumeric suffix (36^6 ≈ 2.1 billion possibilities) makes
+  # collisions astronomically unlikely; the uniqueness loop handles the residual case.
   def generate_registration_number
-    year = Time.current.year
+    initials = "#{first_name[0]}#{last_name[0]}".upcase
+    year     = Time.current.year
 
-    # Retry loop in case of a uniqueness race after the lock window
     loop do
-      last = Member
-               .where("registration_number LIKE ?", "TSA-#{year}-%")
-               .order(:registration_number)
-               .lock("FOR UPDATE SKIP LOCKED")
-               .last
-
-      sequence = last ? last.registration_number.split("-").last.to_i + 1 : 1
-      candidate = format("TSA-%d-%03d", year, sequence)
+      random_part = SecureRandom.alphanumeric(6).upcase
+      candidate   = "TSA-#{year}-#{initials}-#{random_part}"
 
       unless Member.exists?(registration_number: candidate)
         self.registration_number = candidate
