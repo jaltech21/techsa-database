@@ -4,7 +4,7 @@ class Member < ApplicationRecord
          :jwt_authenticatable, jwt_revocation_strategy: JwtDenylist
 
   # Enums
-  enum :status, { pending: "pending", active: "active" }, prefix: true
+  enum :status, { pending: "pending", active: "active", revoked: "revoked" }, prefix: true
   enum :role,   { member: "member",   admin: "admin"   }, prefix: true
 
   # Validations

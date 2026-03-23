@@ -18,6 +18,7 @@ function Icon({ name, className = "w-5 h-5" }) {
     menu:    "M4 6h16M4 12h16M4 18h16",
     eye:     "M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z",
     shield:  "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
+    ban:     "M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636",
     chevron: "M9 5l7 7-7 7",
     mail:    "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z",
     phone:   "M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.948V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z",
@@ -36,6 +37,7 @@ function StatCard({ icon, label, value, color }) {
     indigo: "bg-indigo-50 text-indigo-600",
     green:  "bg-green-50 text-green-600",
     amber:  "bg-amber-50 text-amber-600",
+    red:    "bg-red-50 text-red-600",
   };
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
@@ -72,6 +74,7 @@ function AdminSidebar({ view, setView, onLogout, open, onClose }) {
     { id: "members", label: "All Members", icon: "users" },
     { id: "active",  label: "Active",      icon: "check" },
     { id: "pending", label: "Pending",     icon: "clock" },
+    { id: "revoked", label: "Revoked",     icon: "ban"   },
   ];
 
   return (
@@ -112,14 +115,6 @@ function AdminSidebar({ view, setView, onLogout, open, onClose }) {
         })}
 
         <div className="pt-5 border-t border-slate-800 mt-5 space-y-1">
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest px-3 mb-3">Navigation</p>
-          <a
-            href="/dashboard"
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all"
-          >
-            <Icon name="home" className="w-5 h-5 shrink-0" />
-            Member Dashboard
-          </a>
           <button
             onClick={onLogout}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all"
@@ -142,11 +137,13 @@ function AdminSidebar({ view, setView, onLogout, open, onClose }) {
 }
 
 // ─── Member detail drawer ────────────────────────────────────────
-function MemberDrawer({ member, onClose, onToggleStatus, updating }) {
+function MemberDrawer({ member, onClose, onToggleStatus, onRevoke, updating }) {
   if (!member) return null;
 
-  const isActive = member.status === "active";
+  const isActive  = member.status === "active";
+  const isRevoked = member.status === "revoked";
   const interests = member.areas_of_interest ?? [];
+  const [confirmRevoke, setConfirmRevoke] = useState(false);
 
   return (
     <>
@@ -171,7 +168,9 @@ function MemberDrawer({ member, onClose, onToggleStatus, updating }) {
           <p className="text-slate-400 text-sm font-mono mb-3">{member.registration_number}</p>
           <div className="flex items-center gap-2 flex-wrap">
             <span className={`text-xs font-bold px-3 py-1 rounded-full border capitalize ${
-              isActive ? "bg-green-500/20 text-green-300 border-green-500/30" : "bg-amber-500/20 text-amber-300 border-amber-500/30"
+              isActive ? "bg-green-500/20 text-green-300 border-green-500/30" :
+              isRevoked ? "bg-red-500/20 text-red-300 border-red-500/30" :
+              "bg-amber-500/20 text-amber-300 border-amber-500/30"
             }`}>
               {member.status}
             </span>
@@ -226,18 +225,56 @@ function MemberDrawer({ member, onClose, onToggleStatus, updating }) {
         </div>
 
         {/* Action footer */}
-        <div className="px-6 py-4 border-t border-gray-100 shrink-0">
-          <button
-            onClick={() => onToggleStatus(member)}
-            disabled={updating}
-            className={`w-full py-3 rounded-xl text-sm font-bold transition-all disabled:opacity-60 ${
-              isActive
-                ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
-                : "bg-green-600 text-white hover:bg-green-700 shadow-md shadow-green-200"
-            }`}
-          >
-            {updating ? "Saving…" : isActive ? "Set to Pending" : "Activate Member"}
-          </button>
+        <div className="px-6 py-4 border-t border-gray-100 shrink-0 space-y-2">
+          {!isRevoked && (
+            <button
+              onClick={() => onToggleStatus(member)}
+              disabled={updating}
+              className={`w-full py-3 rounded-xl text-sm font-bold transition-all disabled:opacity-60 ${
+                isActive
+                  ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                  : "bg-green-600 text-white hover:bg-green-700 shadow-md shadow-green-200"
+              }`}
+            >
+              {updating ? "Saving…" : isActive ? "Set to Pending" : "Activate Member"}
+            </button>
+          )}
+
+          {isRevoked ? (
+            <button
+              onClick={() => onToggleStatus(member)}
+              disabled={updating}
+              className="w-full py-3 rounded-xl text-sm font-bold bg-green-600 text-white hover:bg-green-700 shadow-md shadow-green-200 transition-all disabled:opacity-60"
+            >
+              {updating ? "Saving…" : "Reinstate Member"}
+            </button>
+          ) : confirmRevoke ? (
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setConfirmRevoke(false); onRevoke(member); }}
+                disabled={updating}
+                className="flex-1 py-3 rounded-xl text-sm font-bold bg-red-600 text-white hover:bg-red-700 transition-all disabled:opacity-60"
+              >
+                {updating ? "Revoking…" : "Confirm Revoke"}
+              </button>
+              <button
+                onClick={() => setConfirmRevoke(false)}
+                disabled={updating}
+                className="px-4 py-3 rounded-xl text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirmRevoke(true)}
+              disabled={updating}
+              className="w-full py-3 rounded-xl text-sm font-bold bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+            >
+              <Icon name="ban" className="w-4 h-4" />
+              Revoke Membership
+            </button>
+          )}
         </div>
       </div>
     </>
@@ -258,6 +295,7 @@ export default function AdminPanel() {
   const [view, setView] = useState("members");
   const [search, setSearch] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [revoking, setRevoking] = useState(false);
 
   useEffect(() => {
     adminApi
@@ -273,7 +311,8 @@ export default function AdminPanel() {
   }
 
   async function handleToggleStatus(member) {
-    const newStatus = member.status === "active" ? "pending" : "active";
+    const newStatus = member.status === "active" ? "pending" :
+                      member.status === "revoked"  ? "active"  : "active";
     setUpdating(true);
     try {
       const res = await adminApi.updateMember(member.id, { status: newStatus });
@@ -288,12 +327,30 @@ export default function AdminPanel() {
     }
   }
 
+  async function handleRevoke(member) {
+    setRevoking(true);
+    setUpdating(true);
+    try {
+      const res = await adminApi.updateMember(member.id, { status: "revoked" });
+      const updated = res.data;
+      setMembers((prev) => prev.map((m) => (m.id === member.id ? updated : m)));
+      setSelectedMember(updated);
+      showToast(`${member.first_name} ${member.last_name}'s membership has been revoked.`, "success");
+    } catch {
+      showToast("Failed to revoke membership.", "error");
+    } finally {
+      setUpdating(false);
+      setRevoking(false);
+    }
+  }
+
   // Filter members
   const filtered = members.filter((m) => {
     const matchesView =
       view === "members" ? true :
       view === "active"  ? m.status === "active" :
-      view === "pending" ? m.status !== "active" : true;
+      view === "pending" ? m.status === "pending" :
+      view === "revoked" ? m.status === "revoked" : true;
 
     const q = search.toLowerCase();
     const matchesSearch = !q || [
@@ -306,9 +363,10 @@ export default function AdminPanel() {
 
   const total   = members.length;
   const active  = members.filter((m) => m.status === "active").length;
-  const pending = total - active;
+  const revoked = members.filter((m) => m.status === "revoked").length;
+  const pending = members.filter((m) => m.status === "pending").length;
 
-  const viewLabels = { members: "All Members", active: "Active Members", pending: "Pending Approval" };
+  const viewLabels = { members: "All Members", active: "Active Members", pending: "Pending Approval", revoked: "Revoked Members" };
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -351,10 +409,11 @@ export default function AdminPanel() {
 
           {/* Stats */}
           {!loading && !error && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <StatCard icon="users" label="Total Members" value={total}   color="indigo" />
               <StatCard icon="check" label="Active"        value={active}  color="green" />
               <StatCard icon="clock" label="Pending"       value={pending} color="amber" />
+              <StatCard icon="ban"   label="Revoked"       value={revoked} color="red" />
             </div>
           )}
 
@@ -445,7 +504,9 @@ export default function AdminPanel() {
                           </td>
                           <td className="px-5 py-3.5">
                             <span className={`px-2.5 py-1 rounded-full text-xs font-bold capitalize whitespace-nowrap ${
-                              isActive ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                              member.status === "active"  ? "bg-green-100 text-green-700" :
+                              member.status === "revoked" ? "bg-red-100 text-red-700" :
+                              "bg-amber-100 text-amber-700"
                             }`}>
                               {member.status}
                             </span>
@@ -473,6 +534,7 @@ export default function AdminPanel() {
           member={selectedMember}
           onClose={() => setSelectedMember(null)}
           onToggleStatus={handleToggleStatus}
+          onRevoke={handleRevoke}
           updating={updating}
         />
       )}

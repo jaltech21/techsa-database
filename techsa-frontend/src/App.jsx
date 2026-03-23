@@ -8,6 +8,12 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import AdminPanel from "./pages/AdminPanel";
 
+function DefaultRedirect() {
+  const { currentUser } = useAuth();
+  if (currentUser?.role === "admin") return <Navigate to="/admin" replace />;
+  return <Navigate to="/login" replace />;
+}
+
 function AppRoutes() {
   const { loading } = useAuth();
 
@@ -25,8 +31,8 @@ function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
-      {/* Member-protected routes */}
-      <Route element={<ProtectedRoute />}>
+      {/* Member-protected routes (admins are redirected to /admin) */}
+      <Route element={<ProtectedRoute blockAdmin />}>
         <Route path="/dashboard" element={<Dashboard />} />
       </Route>
 
@@ -35,7 +41,7 @@ function AppRoutes() {
         <Route path="/admin" element={<AdminPanel />} />
       </Route>
 
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<DefaultRedirect />} />
     </Routes>
   );
 }

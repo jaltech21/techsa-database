@@ -9,6 +9,10 @@ module Api
       # Called on successful sign-in — JWT is added to the Authorization response header
       # automatically by devise-jwt; we only need to return the member body.
       def respond_with(resource, _opts = {})
+        if resource.status_revoked?
+          render json: { error: "Your membership has been revoked. Please contact TECHSA administration." }, status: :forbidden
+          return
+        end
         render json: {
           message: "Logged in successfully",
           member: member_json(resource)
