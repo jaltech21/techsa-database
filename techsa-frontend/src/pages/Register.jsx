@@ -55,7 +55,8 @@ function validateStep(step, form) {
       form.department.trim() &&
       form.level &&
       form.date_of_birth &&
-      form.gender
+      form.gender &&
+      (form.member_type === "general" || form.position.trim())
     );
   }
   if (step === 2) {
@@ -85,6 +86,7 @@ export default function Register() {
     phone_number: "", email: "", residential_area: "", emergency_contact: "",
     areas_of_interest: [], other_interests: "",
     password: "",
+    member_type: "general", position: "",
   });
 
   const handleChange = (e) =>
@@ -212,6 +214,55 @@ export default function Register() {
               {step === 1 && (
                 <div className="space-y-4">
                   <SectionTitle step="1" title="Personal Information" />
+
+                  {/* Member type selection */}
+                  <div>
+                    <Label required>Member Type</Label>
+                    <div className="flex gap-3">
+                      {[
+                        { value: "general",   label: "General Member", icon: "👤", desc: "Standard TECHSA membership" },
+                        { value: "executive", label: "Executive",       icon: "🏛️", desc: "Committee or leadership role" },
+                      ].map(({ value, label, icon, desc }) => {
+                        const isChosen = form.member_type === value;
+                        return (
+                          <button
+                            type="button"
+                            key={value}
+                            onClick={() => setForm((prev) => ({ ...prev, member_type: value, position: "" }))}
+                            className={`flex-1 flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 text-center transition-all ${
+                              isChosen
+                                ? "border-indigo-600 bg-indigo-50 text-indigo-700"
+                                : "border-gray-200 bg-gray-50 text-gray-500 hover:border-indigo-300"
+                            }`}
+                          >
+                            <span className="text-2xl">{icon}</span>
+                            <span className="text-xs font-bold">{label}</span>
+                            <span className={`text-xs leading-snug ${isChosen ? "text-indigo-500" : "text-gray-400"}`}>{desc}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Position — executive only */}
+                  {form.member_type === "executive" && (
+                    <div>
+                      <Label required>Executive Position</Label>
+                      <input
+                        type="text"
+                        name="position"
+                        value={form.position}
+                        onChange={handleChange}
+                        maxLength={100}
+                        placeholder="e.g. President, Secretary, Treasurer…"
+                        className={inp}
+                      />
+                      <p className="text-xs text-amber-600 mt-1.5 font-medium">
+                        ⚠ Your position will be verified and an executive number assigned by an administrator.
+                      </p>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label required>First Name</Label>

@@ -30,13 +30,16 @@ module Api
 
       def member_json(member)
         {
-          id: member.id,
-          first_name: member.first_name,
-          last_name: member.last_name,
-          email: member.email,
+          id:                  member.id,
+          first_name:          member.first_name,
+          last_name:           member.last_name,
+          email:               member.email,
           registration_number: member.registration_number,
-          status: member.status,
-          role: member.role
+          status:              member.status,
+          role:                member.role,
+          member_type:         member.member_type,
+          position:            member.position,
+          executive_number:    member.executive_number
         }
       end
     end

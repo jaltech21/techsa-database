@@ -25,8 +25,10 @@ module Api
           :first_name, :last_name, :student_id, :email, :password,
           :department, :level, :gender, :date_of_birth,
           :phone_number, :residential_area, :emergency_contact,
+          :member_type, :position,
           :other_interests,
           areas_of_interest: []
+          # executive_number deliberately omitted — admin-assigned only
         )
       end
 
@@ -48,7 +50,9 @@ module Api
           residential_area:    member.residential_area,
           emergency_contact:   member.emergency_contact,
           areas_of_interest:   member.areas_of_interest,
-          other_interests:     member.other_interests
+          other_interests:     member.other_interests,
+          member_type:         member.member_type,
+          position:            member.position
         }
       end
     end

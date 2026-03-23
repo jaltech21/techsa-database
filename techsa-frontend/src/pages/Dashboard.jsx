@@ -301,7 +301,14 @@ export default function Dashboard() {
             <div className="space-y-5">
               <div className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-2xl p-8 text-white shadow-lg shadow-indigo-200/50 relative overflow-hidden">
                 <div className="absolute -top-10 -right-10 w-56 h-56 rounded-full bg-white/10 pointer-events-none" />
-                <p className="text-indigo-200 text-xs font-semibold uppercase tracking-widest mb-3">TECHSA Membership Card</p>
+                <div className="flex items-center gap-2 mb-3 flex-wrap">
+                  <p className="text-indigo-200 text-xs font-semibold uppercase tracking-widest">TECHSA Membership Card</p>
+                  {currentUser?.member_type === "executive" && (
+                    <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-violet-500/30 text-violet-200 border border-violet-400/30">
+                      Executive
+                    </span>
+                  )}
+                </div>
                 <p className="text-4xl sm:text-5xl font-mono font-extrabold tracking-tight mb-8">
                   {currentUser?.registration_number ?? "—"}
                 </p>
@@ -322,7 +329,25 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <StatCard icon="🏛️" label="Department" value={currentUser?.department} />
                 <StatCard icon="📚" label="Level"      value={currentUser?.level} />
+                {currentUser?.member_type === "executive" && (
+                  <StatCard icon="⭐" label="Position" value={currentUser?.position} />
+                )}
+                {currentUser?.member_type === "executive" && currentUser?.executive_number && (
+                  <StatCard icon="🎖️" label="Executive No." value={currentUser.executive_number} />
+                )}
               </div>
+
+              {currentUser?.member_type === "executive" && !currentUser?.executive_number && (
+                <div className="flex items-start gap-3 bg-violet-50 border border-violet-200 rounded-2xl p-5">
+                  <span className="text-xl shrink-0">⭐</span>
+                  <div>
+                    <p className="font-bold text-violet-800 text-sm mb-0.5">Executive Number Pending</p>
+                    <p className="text-xs text-violet-700 leading-relaxed">
+                      Your executive number will be assigned by an administrator once your position is verified.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {!statusActive && (
                 <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-5">

@@ -63,6 +63,18 @@ export default function SuccessModal({ member, onClose }) {
               <span className="font-mono text-indigo-600 font-bold text-sm">{member?.registration_number}</span>
             </div>
             <div className="flex items-center justify-between px-4 py-3">
+              <span className="text-xs text-gray-400 font-semibold uppercase tracking-widest">Member Type</span>
+              <span className="text-sm text-gray-700 font-medium">
+                {member?.member_type === "executive" ? "Executive" : "General Member"}
+              </span>
+            </div>
+            {member?.member_type === "executive" && member?.position && (
+              <div className="flex items-center justify-between px-4 py-3">
+                <span className="text-xs text-gray-400 font-semibold uppercase tracking-widest">Position</span>
+                <span className="text-sm text-indigo-700 font-semibold">{member.position}</span>
+              </div>
+            )}
+            <div className="flex items-center justify-between px-4 py-3">
               <span className="text-xs text-gray-400 font-semibold uppercase tracking-widest">Status</span>
               <span className={`text-xs font-bold px-3 py-1 rounded-full border capitalize ${statusColor}`}>
                 {member?.status}

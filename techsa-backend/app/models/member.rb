@@ -4,13 +4,17 @@ class Member < ApplicationRecord
          :jwt_authenticatable, jwt_revocation_strategy: JwtDenylist
 
   # Enums
-  enum :status, { pending: "pending", active: "active", revoked: "revoked" }, prefix: true
-  enum :role,   { member: "member",   admin: "admin"   }, prefix: true
+  enum :status,      { pending: "pending", active: "active", revoked: "revoked" }, prefix: true
+  enum :role,        { member: "member",   admin: "admin"   }, prefix: true
+  enum :member_type, { general: "general", executive: "executive" },              prefix: true
 
   # Validations
   validates :first_name, :last_name, :student_id, presence: true
   validates :student_id,          uniqueness: { case_sensitive: false }
   validates :registration_number, uniqueness: true, allow_nil: true
+  validates :position,            presence: true, if: -> { member_type_executive? }
+  validates :position,            length: { maximum: 100 }, allow_blank: true
+  validates :executive_number,    uniqueness: true, allow_nil: true
 
   # Callbacks
   before_create :generate_registration_number

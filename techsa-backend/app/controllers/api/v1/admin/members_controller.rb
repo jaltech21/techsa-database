@@ -23,7 +23,7 @@ module Api
         private
 
         def member_params
-          params.require(:member).permit(:status)
+          params.require(:member).permit(:status, :executive_number)
         end
 
         def member_json(member)
@@ -45,6 +45,9 @@ module Api
             emergency_contact:   member.emergency_contact,
             areas_of_interest:   member.areas_of_interest,
             other_interests:     member.other_interests,
+            member_type:         member.member_type,
+            position:            member.position,
+            executive_number:    member.executive_number,
             created_at:          member.created_at
           }
         end

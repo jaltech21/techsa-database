@@ -19,6 +19,7 @@ function Icon({ name, className = "w-5 h-5" }) {
     eye:     "M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z",
     shield:  "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
     ban:     "M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636",
+    star:    "M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z",
     chevron: "M9 5l7 7-7 7",
     mail:    "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z",
     phone:   "M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.948V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z",
@@ -34,10 +35,11 @@ function Icon({ name, className = "w-5 h-5" }) {
 // ─── Stat card ──────────────────────────────────────────────────
 function StatCard({ icon, label, value, color }) {
   const colors = {
-    indigo: "bg-indigo-50 text-indigo-600",
-    green:  "bg-green-50 text-green-600",
-    amber:  "bg-amber-50 text-amber-600",
-    red:    "bg-red-50 text-red-600",
+    indigo:  "bg-indigo-50 text-indigo-600",
+    green:   "bg-green-50 text-green-600",
+    amber:   "bg-amber-50 text-amber-600",
+    red:     "bg-red-50 text-red-600",
+    purple:  "bg-purple-50 text-purple-600",
   };
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
@@ -71,10 +73,11 @@ function DetailRow({ icon, label, value }) {
 // ─── Admin Sidebar ──────────────────────────────────────────────
 function AdminSidebar({ view, setView, onLogout, open, onClose }) {
   const navItems = [
-    { id: "members", label: "All Members", icon: "users" },
-    { id: "active",  label: "Active",      icon: "check" },
-    { id: "pending", label: "Pending",     icon: "clock" },
-    { id: "revoked", label: "Revoked",     icon: "ban"   },
+    { id: "members",    label: "All Members", icon: "users" },
+    { id: "active",     label: "Active",      icon: "check" },
+    { id: "pending",    label: "Pending",     icon: "clock" },
+    { id: "revoked",    label: "Revoked",     icon: "ban"   },
+    { id: "executives", label: "Executives",  icon: "star"  },
   ];
 
   return (
@@ -137,13 +140,16 @@ function AdminSidebar({ view, setView, onLogout, open, onClose }) {
 }
 
 // ─── Member detail drawer ────────────────────────────────────────
-function MemberDrawer({ member, onClose, onToggleStatus, onRevoke, updating }) {
+function MemberDrawer({ member, onClose, onToggleStatus, onRevoke, onAssignExecNumber, updating }) {
   if (!member) return null;
 
-  const isActive  = member.status === "active";
-  const isRevoked = member.status === "revoked";
-  const interests = member.areas_of_interest ?? [];
-  const [confirmRevoke, setConfirmRevoke] = useState(false);
+  const isActive    = member.status === "active";
+  const isRevoked   = member.status === "revoked";
+  const isExecutive = member.member_type === "executive";
+  const interests   = member.areas_of_interest ?? [];
+  const [confirmRevoke,   setConfirmRevoke]   = useState(false);
+  const [execNumberInput, setExecNumberInput] = useState(member.executive_number ?? "");
+  useEffect(() => { setExecNumberInput(member.executive_number ?? ""); }, [member.executive_number]);
 
   return (
     <>
@@ -179,6 +185,11 @@ function MemberDrawer({ member, onClose, onToggleStatus, onRevoke, updating }) {
                 Admin
               </span>
             )}
+            {isExecutive && (
+              <span className="text-xs font-bold px-3 py-1 rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/30">
+                Executive
+              </span>
+            )}
           </div>
         </div>
 
@@ -187,6 +198,7 @@ function MemberDrawer({ member, onClose, onToggleStatus, onRevoke, updating }) {
           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Personal Details</p>
           <DetailRow icon="id"     label="Student ID"        value={member.student_id} />
           <DetailRow icon="users"  label="Department"        value={member.department} />
+          {isExecutive && <DetailRow icon="star" label="Position" value={member.position} />}
           <DetailRow icon="id"     label="Level / Year"      value={member.level} />
           <DetailRow icon="users"  label="Gender"            value={member.gender ? member.gender.charAt(0).toUpperCase() + member.gender.slice(1) : null} />
           <DetailRow icon="clock"  label="Date of Birth"     value={member.date_of_birth} />
@@ -222,6 +234,49 @@ function MemberDrawer({ member, onClose, onToggleStatus, onRevoke, updating }) {
           <DetailRow icon="clock"  label="Registered"
             value={member.created_at ? new Date(member.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : null}
           />
+
+          {isExecutive && (
+            <>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 mt-5">Executive</p>
+              {member.executive_number ? (
+                <div className="flex items-start gap-3 py-3">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0 mt-0.5">
+                    <Icon name="star" className="w-4 h-4 text-indigo-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400 font-semibold uppercase tracking-widest mb-0.5">Executive Number</p>
+                    <p className="text-sm text-indigo-700 font-bold font-mono">{member.executive_number}</p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-3">
+                    <Icon name="clock" className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-700 font-medium leading-relaxed">
+                      <strong>Unverified executive claim</strong> — position: "{member.position}". Assign an executive number to verify.
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={execNumberInput}
+                      onChange={(e) => setExecNumberInput(e.target.value)}
+                      placeholder="e.g. EXEC-2026-001"
+                      maxLength={30}
+                      className="flex-1 text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition font-mono"
+                    />
+                    <button
+                      onClick={() => onAssignExecNumber(member, execNumberInput)}
+                      disabled={!execNumberInput.trim() || updating}
+                      className="px-4 py-2.5 rounded-xl text-sm font-bold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 transition-all"
+                    >
+                      {updating ? "…" : "Assign"}
+                    </button>
+                  </div>
+                </>
+              )}
+            </>
+          )}
         </div>
 
         {/* Action footer */}
@@ -344,13 +399,29 @@ export default function AdminPanel() {
     }
   }
 
+  async function handleAssignExecNumber(member, execNumber) {
+    setUpdating(true);
+    try {
+      const res = await adminApi.updateMember(member.id, { executive_number: execNumber.trim() });
+      const updated = res.data;
+      setMembers((prev) => prev.map((m) => (m.id === member.id ? updated : m)));
+      setSelectedMember(updated);
+      showToast(`Executive number assigned to ${member.first_name} ${member.last_name}.`, "success");
+    } catch {
+      showToast("Failed to assign executive number.", "error");
+    } finally {
+      setUpdating(false);
+    }
+  }
+
   // Filter members
   const filtered = members.filter((m) => {
     const matchesView =
-      view === "members" ? true :
-      view === "active"  ? m.status === "active" :
-      view === "pending" ? m.status === "pending" :
-      view === "revoked" ? m.status === "revoked" : true;
+      view === "members"    ? true :
+      view === "active"     ? m.status === "active" :
+      view === "pending"    ? m.status === "pending" :
+      view === "revoked"    ? m.status === "revoked" :
+      view === "executives" ? m.member_type === "executive" : true;
 
     const q = search.toLowerCase();
     const matchesSearch = !q || [
@@ -361,12 +432,13 @@ export default function AdminPanel() {
     return matchesView && matchesSearch;
   });
 
-  const total   = members.length;
-  const active  = members.filter((m) => m.status === "active").length;
-  const revoked = members.filter((m) => m.status === "revoked").length;
-  const pending = members.filter((m) => m.status === "pending").length;
+  const total      = members.length;
+  const active     = members.filter((m) => m.status === "active").length;
+  const revoked    = members.filter((m) => m.status === "revoked").length;
+  const pending    = members.filter((m) => m.status === "pending").length;
+  const executives = members.filter((m) => m.member_type === "executive").length;
 
-  const viewLabels = { members: "All Members", active: "Active Members", pending: "Pending Approval", revoked: "Revoked Members" };
+  const viewLabels = { members: "All Members", active: "Active Members", pending: "Pending Approval", revoked: "Revoked Members", executives: "Executive Members" };
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -409,11 +481,12 @@ export default function AdminPanel() {
 
           {/* Stats */}
           {!loading && !error && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatCard icon="users" label="Total Members" value={total}   color="indigo" />
-              <StatCard icon="check" label="Active"        value={active}  color="green" />
-              <StatCard icon="clock" label="Pending"       value={pending} color="amber" />
-              <StatCard icon="ban"   label="Revoked"       value={revoked} color="red" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              <StatCard icon="users" label="Total Members" value={total}      color="indigo" />
+              <StatCard icon="check" label="Active"        value={active}     color="green" />
+              <StatCard icon="clock" label="Pending"       value={pending}    color="amber" />
+              <StatCard icon="ban"   label="Revoked"       value={revoked}    color="red" />
+              <StatCard icon="star"  label="Executives"    value={executives} color="purple" />
             </div>
           )}
 
@@ -535,6 +608,7 @@ export default function AdminPanel() {
           onClose={() => setSelectedMember(null)}
           onToggleStatus={handleToggleStatus}
           onRevoke={handleRevoke}
+          onAssignExecNumber={handleAssignExecNumber}
           updating={updating}
         />
       )}
