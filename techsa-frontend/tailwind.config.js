@@ -20,6 +20,27 @@ export default {
           900: "#312e81",
         },
       },
+      keyframes: {
+        float: {
+          "0%":   { transform: "translateY(20px)",   opacity: "0" },
+          "15%":  { opacity: "1" },
+          "85%":  { opacity: "1" },
+          "100%": { transform: "translateY(-110px)", opacity: "0" },
+        },
+        "glow-pulse": {
+          "0%, 100%": { opacity: "0.18", transform: "scale(1)" },
+          "50%":      { opacity: "0.30", transform: "scale(1.12)" },
+        },
+        "fade-up": {
+          "0%":   { opacity: "0", transform: "translateY(24px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+      },
+      animation: {
+        float:       "float 15s linear infinite",
+        "glow-pulse": "glow-pulse 7s ease-in-out infinite",
+        "fade-up":    "fade-up 0.7s ease both",
+      },
     },
   },
   plugins: [],

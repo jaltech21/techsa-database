@@ -7,11 +7,13 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import AdminPanel from "./pages/AdminPanel";
+import LandingPage from "./pages/LandingPage";
 
 function DefaultRedirect() {
   const { currentUser } = useAuth();
   if (currentUser?.role === "admin") return <Navigate to="/admin" replace />;
-  return <Navigate to="/login" replace />;
+  if (currentUser) return <Navigate to="/dashboard" replace />;
+  return <Navigate to="/" replace />;
 }
 
 function AppRoutes() {
@@ -28,6 +30,7 @@ function AppRoutes() {
 
   return (
     <Routes>
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
