@@ -24,6 +24,8 @@ const STEPS = [
 ];
 
 const inp = "w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-transparent transition-all";
+const inpError = "w-full bg-gray-50 border border-red-400 rounded-xl px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-300 focus:bg-white focus:border-transparent transition-all";
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function Label({ children, required }) {
   return (
@@ -63,6 +65,7 @@ function validateStep(step, form) {
     return (
       form.phone_number.trim() &&
       form.email.trim() &&
+      EMAIL_RE.test(form.email) &&
       form.residential_area.trim()
     );
   }
@@ -79,6 +82,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
   const [newMember, setNewMember] = useState(null);
 
   const [form, setForm] = useState({
@@ -371,9 +375,19 @@ export default function Register() {
                     </div>
                     <div>
                       <Label required>Email Address</Label>
-                      <input type="email" name="email" value={form.email}
-                        onChange={handleChange} autoComplete="email"
-                        placeholder="you@example.com" className={inp} />
+                      <input
+                        type="email"
+                        name="email"
+                        value={form.email}
+                        onChange={handleChange}
+                        onBlur={() => setEmailTouched(true)}
+                        autoComplete="email"
+                        placeholder="you@example.com"
+                        className={emailTouched && form.email && !EMAIL_RE.test(form.email) ? inpError : inp}
+                      />
+                      {emailTouched && form.email && !EMAIL_RE.test(form.email) && (
+                        <p className="text-xs text-red-500 mt-1.5 font-medium">Please enter a valid email address.</p>
+                      )}
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">

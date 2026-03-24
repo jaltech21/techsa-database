@@ -6,6 +6,8 @@ import { authApi } from "../services/api";
 import AuthBrand from "../components/AuthBrand";
 import Spinner from "../components/Spinner";
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function Login() {
   const { login } = useAuth();
   const { showToast } = useToast();
@@ -14,12 +16,20 @@ export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
+
+  const emailError = emailTouched && form.email && !EMAIL_RE.test(form.email);
 
   const handleChange = (e) =>
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!EMAIL_RE.test(form.email)) {
+      setEmailTouched(true);
+      showToast("Please enter a valid email address.", "error");
+      return;
+    }
     setLoading(true);
     try {
       const res = await authApi.login(form);
@@ -58,11 +68,19 @@ export default function Login() {
                 name="email"
                 value={form.email}
                 onChange={handleChange}
+                onBlur={() => setEmailTouched(true)}
                 required
                 autoComplete="email"
-                className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                className={`w-full border rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:border-transparent transition ${
+                  emailError
+                    ? "border-red-400 focus:ring-red-300"
+                    : "border-gray-200 focus:ring-indigo-500"
+                }`}
                 placeholder="you@example.com"
               />
+              {emailError && (
+                <p className="text-xs text-red-500 mt-1.5 font-medium">Please enter a valid email address.</p>
+              )}
             </div>
 
             <div>
