@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Local env files (never commit real env values)
+.env.local
+.env.*.local
+
+# Editor / OS
+.DS_Store
+*.local
+
+# Vite
+vite.config.js.timestamp-*
