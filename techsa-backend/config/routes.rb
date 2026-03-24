@@ -8,10 +8,12 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
-      get "members/me", to: "members#me"
+      get  "members/me",       to: "members#me"
+      post "passkeys/validate", to: "passkeys#validate"
 
       namespace :admin do
-        resources :members, only: %i[index update]
+        resources :members,  only: %i[index update]
+        resources :passkeys, only: %i[index create]
       end
     end
   end

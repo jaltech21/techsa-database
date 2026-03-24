@@ -8,7 +8,27 @@ module Api
       def create
         member = Member.new(sign_up_params)
 
-        if member.save
+        # Validate executive passkey before saving
+        if member.member_type_executive?
+          passkey_token = params.dig(:member, :executive_passkey).to_s.strip
+          passkey = ExecutivePasskey.find_by(token: passkey_token)
+
+          unless passkey && !passkey.used
+            error_msg = passkey ? "This executive passkey has already been used." : "Invalid executive passkey."
+            render json: { errors: [error_msg] }, status: :unprocessable_entity
+            return
+          end
+        end
+
+        saved = false
+        ActiveRecord::Base.transaction do
+          if member.save
+            passkey.update!(used: true, used_by_email: member.email) if member.member_type_executive?
+            saved = true
+          end
+        end
+
+        if saved
           render json: {
             message: "Registration successful",
             member: member_json(member)

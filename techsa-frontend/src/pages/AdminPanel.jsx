@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../contexts/ToastContext";
 import { adminApi } from "../services/api";
+import api from "../services/api";
 import Spinner from "../components/Spinner";
 
 // ─── Icons ──────────────────────────────────────────────────────
@@ -24,6 +25,8 @@ function Icon({ name, className = "w-5 h-5" }) {
     mail:    "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z",
     phone:   "M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.948V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z",
     id:      "M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2",
+    key:     "M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z",
+    copy:    "M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z",
   };
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -78,6 +81,7 @@ function AdminSidebar({ view, setView, onLogout, open, onClose }) {
     { id: "pending",    label: "Pending",     icon: "clock" },
     { id: "revoked",    label: "Revoked",     icon: "ban"   },
     { id: "executives", label: "Executives",  icon: "star"  },
+    { id: "passkeys",   label: "Passkeys",    icon: "key"   },
   ];
 
   return (
@@ -351,6 +355,9 @@ export default function AdminPanel() {
   const [search, setSearch] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [revoking, setRevoking] = useState(false);
+  const [passkeys, setPasskeys] = useState([]);
+  const [passkeysLoading, setPasskeysLoading] = useState(false);
+  const [generatingPasskey, setGeneratingPasskey] = useState(false);
 
   useEffect(() => {
     adminApi
@@ -359,6 +366,34 @@ export default function AdminPanel() {
       .catch(() => setError("Failed to load members."))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (view !== "passkeys") return;
+    setPasskeysLoading(true);
+    adminApi
+      .listPasskeys()
+      .then((res) => setPasskeys(res.data))
+      .catch(() => showToast("Failed to load passkeys.", "error"))
+      .finally(() => setPasskeysLoading(false));
+  }, [view]);
+
+  async function handleGeneratePasskey() {
+    setGeneratingPasskey(true);
+    try {
+      const res = await adminApi.generatePasskey();
+      setPasskeys((prev) => [res.data, ...prev]);
+      showToast(`Passkey generated: ${res.data.token}`, "success");
+    } catch {
+      showToast("Failed to generate passkey.", "error");
+    } finally {
+      setGeneratingPasskey(false);
+    }
+  }
+
+  function handleCopyToken(token) {
+    navigator.clipboard.writeText(token);
+    showToast(`Copied: ${token}`, "success");
+  }
 
   function handleLogout() {
     logout();
@@ -438,7 +473,7 @@ export default function AdminPanel() {
   const pending    = members.filter((m) => m.status === "pending").length;
   const executives = members.filter((m) => m.member_type === "executive").length;
 
-  const viewLabels = { members: "All Members", active: "Active Members", pending: "Pending Approval", revoked: "Revoked Members", executives: "Executive Members" };
+  const viewLabels = { members: "All Members", active: "Active Members", pending: "Pending Approval", revoked: "Revoked Members", executives: "Executive Members", passkeys: "Executive Passkeys" };
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -479,6 +514,88 @@ export default function AdminPanel() {
 
         <main className="flex-1 px-4 sm:px-6 py-6 space-y-6">
 
+          {/* ── Passkeys view ── */}
+          {view === "passkeys" ? (
+            <div className="space-y-4">
+              {/* Generate button */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Generate single-use passkeys to share with verified executives before they register.</p>
+                </div>
+                <button
+                  onClick={handleGeneratePasskey}
+                  disabled={generatingPasskey}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 transition-all disabled:opacity-60 shrink-0"
+                >
+                  <Icon name="key" className="w-4 h-4" />
+                  {generatingPasskey ? "Generating…" : "Generate Passkey"}
+                </button>
+              </div>
+
+              {/* Passkeys table */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                {passkeysLoading ? (
+                  <div className="flex justify-center items-center py-24">
+                    <Spinner size="lg" className="text-indigo-500" />
+                  </div>
+                ) : passkeys.length === 0 ? (
+                  <div className="text-center py-16">
+                    <p className="text-3xl mb-3">🔑</p>
+                    <p className="text-gray-500 font-semibold">No passkeys generated yet</p>
+                    <p className="text-sm text-gray-400 mt-1">Click "Generate Passkey" to create one.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm min-w-[500px]">
+                      <thead className="bg-gray-50 border-b border-gray-100">
+                        <tr>
+                          {["Token", "Status", "Used By", "Created", ""].map((h) => (
+                            <th key={h} className="px-5 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">
+                              {h}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {passkeys.map((pk) => (
+                          <tr key={pk.id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-5 py-3.5 font-mono font-bold text-indigo-700 tracking-widest">
+                              {pk.token}
+                            </td>
+                            <td className="px-5 py-3.5">
+                              <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                                pk.used ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+                              }`}>
+                                {pk.used ? "Used" : "Available"}
+                              </span>
+                            </td>
+                            <td className="px-5 py-3.5 text-gray-500 text-sm">
+                              {pk.used_by_email || "—"}
+                            </td>
+                            <td className="px-5 py-3.5 text-gray-400 text-xs whitespace-nowrap">
+                              {new Date(pk.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                            </td>
+                            <td className="px-5 py-3.5">
+                              {!pk.used && (
+                                <button
+                                  onClick={() => handleCopyToken(pk.token)}
+                                  className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
+                                >
+                                  <Icon name="copy" className="w-4 h-4" />
+                                  Copy
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <>
           {/* Stats */}
           {!loading && !error && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -598,6 +715,8 @@ export default function AdminPanel() {
               </div>
             )}
           </div>
+            </>
+          )}
         </main>
       </div>
 

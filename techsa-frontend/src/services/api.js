@@ -32,10 +32,16 @@ export const authApi = {
   me: () => api.get("/api/v1/members/me"),
 };
 
+export const passkeyApi = {
+  validate: (token) => api.post("/api/v1/passkeys/validate", { token }),
+};
+
 export const adminApi = {
   listMembers: () => api.get("/api/v1/admin/members"),
   updateMember: (id, data) =>
     api.patch(`/api/v1/admin/members/${id}`, { member: data }),
+  listPasskeys: () => api.get("/api/v1/admin/passkeys"),
+  generatePasskey: () => api.post("/api/v1/admin/passkeys"),
 };
 
 export default api;

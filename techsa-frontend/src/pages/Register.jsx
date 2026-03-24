@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../contexts/ToastContext";
-import { authApi } from "../services/api";
+import { authApi, passkeyApi } from "../services/api";
 import AuthBrand from "../components/AuthBrand";
 import Spinner from "../components/Spinner";
 import SuccessModal from "../components/SuccessModal";
@@ -56,7 +56,7 @@ function validateStep(step, form) {
       form.level &&
       form.date_of_birth &&
       form.gender &&
-      (form.member_type === "general" || form.position.trim())
+      (form.member_type === "general" || (form.position.trim() && form.executive_passkey.trim()))
     );
   }
   if (step === 2) {
@@ -86,7 +86,7 @@ export default function Register() {
     phone_number: "", email: "", residential_area: "", emergency_contact: "",
     areas_of_interest: [], other_interests: "",
     password: "",
-    member_type: "general", position: "",
+    member_type: "general", position: "", executive_passkey: "",
   });
 
   const handleChange = (e) =>
@@ -101,10 +101,20 @@ export default function Register() {
     }));
   };
 
-  const next = () => {
+  const next = async () => {
     if (!validateStep(step, form)) {
       showToast("Please fill in all required fields before continuing.", "error");
       return;
+    }
+    // Validate executive passkey on step 1 before proceeding
+    if (step === 1 && form.member_type === "executive") {
+      try {
+        await passkeyApi.validate(form.executive_passkey);
+      } catch (err) {
+        const msg = err.response?.data?.error || "Invalid executive passkey.";
+        showToast(msg, "error");
+        return;
+      }
     }
     setStep((s) => Math.min(s + 1, 4));
   };
@@ -259,6 +269,26 @@ export default function Register() {
                       />
                       <p className="text-xs text-amber-600 mt-1.5 font-medium">
                         ⚠ Your position will be verified and an executive number assigned by an administrator.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Executive passkey — required for executives */}
+                  {form.member_type === "executive" && (
+                    <div>
+                      <Label required>Executive Passkey</Label>
+                      <input
+                        type="text"
+                        name="executive_passkey"
+                        value={form.executive_passkey}
+                        onChange={handleChange}
+                        maxLength={20}
+                        placeholder="e.g. EXEC-A3F9-2026"
+                        className={inp + " font-mono tracking-widest uppercase"}
+                        autoComplete="off"
+                      />
+                      <p className="text-xs text-gray-400 mt-1.5 font-medium">
+                        🔑 You must have been issued a passkey by the TECHSA administrator to register as an executive.
                       </p>
                     </div>
                   )}
