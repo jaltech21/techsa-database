@@ -3,7 +3,7 @@ services:
     name: techsa-backend
     runtime: ruby
     buildCommand: bundle install
-    preDeployCommand: bundle exec rails db:migrate
+    preDeployCommand: bundle exec rails db:migrate && bundle exec rails db:seed
     startCommand: bundle exec puma -C config/puma.rb
     envVars:
       - key: RAILS_ENV
