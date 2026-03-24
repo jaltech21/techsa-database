@@ -4,7 +4,7 @@ services:
     runtime: ruby
     buildCommand: bundle install
     preDeployCommand: bundle exec rails db:migrate && (bundle exec rails db:seed || true)
-    startCommand:     startCommand: bundle exec rails db:migrate && (bundle exec rails db:seed || true) && bundle exec puma -C config/puma.rb
+    startCommand:     bundle exec rails db:migrate && (bundle exec rails db:seed || true) && bundle exec puma -C config/puma.rb
     envVars:
       - key: RAILS_ENV
         value: production
