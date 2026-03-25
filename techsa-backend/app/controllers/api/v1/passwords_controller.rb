@@ -8,6 +8,7 @@ module Api
       def create
         email  = params.dig(:member, :email)&.strip&.downcase
         member = Member.find_by(email: email)
+        Rails.logger.info("[PasswordReset] lookup email=#{email.inspect} found=#{!member.nil?}")
 
         if member
           raw_token, hashed_token = Devise.token_generator.generate(Member, :reset_password_token)
