@@ -30,6 +30,12 @@ export const authApi = {
   login: (data) => api.post("/api/v1/members/sign_in", { member: data }),
   logout: () => api.delete("/api/v1/members/sign_out"),
   me: () => api.get("/api/v1/members/me"),
+  forgotPassword: (email) =>
+    api.post("/api/v1/members/password", { member: { email } }),
+  resetPassword: (token, password, passwordConfirmation) =>
+    api.put("/api/v1/members/password", {
+      member: { reset_password_token: token, password, password_confirmation: passwordConfirmation },
+    }),
 };
 
 export const passkeyApi = {

@@ -3,7 +3,8 @@ Rails.application.routes.draw do
              path: "api/v1/members",
              controllers: {
                registrations: "api/v1/registrations",
-               sessions: "api/v1/sessions"
+               sessions:      "api/v1/sessions",
+               passwords:     "api/v1/passwords"
              }
 
   namespace :api do
