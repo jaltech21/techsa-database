@@ -59,8 +59,8 @@ module Api
         }.to_json
 
         response = http.request(request)
-        if response.code.to_i == 200
-          Rails.logger.info("[PasswordReset] Resend email sent to #{member.email}")
+        if (200..299).include?(response.code.to_i)
+          Rails.logger.info("[PasswordReset] Resend email sent to #{member.email} (status=#{response.code})")
         else
           Rails.logger.error("[PasswordReset] Resend API error #{response.code}: #{response.body}")
         end
