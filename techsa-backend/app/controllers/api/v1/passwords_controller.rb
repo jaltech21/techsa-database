@@ -15,14 +15,18 @@ module Api
 
         if member
           raw_token, hashed_token = Devise.token_generator.generate(Member, :reset_password_token)
-          member.update!(
+          member.update_columns(
             reset_password_token:   hashed_token,
             reset_password_sent_at: Time.now.utc
           )
-          reset_url = "#{ENV.fetch('FRONTEND_URL')}/reset-password?token=#{raw_token}"
+          reset_url = "#{ENV['FRONTEND_URL']}/reset-password?token=#{raw_token}"
+          Rails.logger.info("[PasswordReset] reset_url=#{reset_url.inspect} api_key_present=#{ENV['RESEND_API_KEY'].present?}")
           deliver_via_resend(member, reset_url)
         end
 
+        render json: { message: "If that email is registered, reset instructions have been sent." }, status: :ok
+      rescue StandardError => e
+        Rails.logger.error("[PasswordReset] UNEXPECTED ERROR: #{e.class} - #{e.message}\n#{e.backtrace.first(5).join("\n")}")
         render json: { message: "If that email is registered, reset instructions have been sent." }, status: :ok
       end
 
