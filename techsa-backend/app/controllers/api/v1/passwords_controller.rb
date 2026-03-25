@@ -16,7 +16,11 @@ module Api
             reset_password_sent_at: Time.now.utc
           )
           reset_url = "#{ENV.fetch('FRONTEND_URL')}/reset-password?token=#{raw_token}"
-          MemberMailer.reset_password_email(member, reset_url).deliver_now
+          begin
+            MemberMailer.reset_password_email(member, reset_url).deliver_now
+          rescue StandardError => e
+            Rails.logger.error("Password reset email failed: #{e.message}")
+          end
         end
 
         render json: { message: "If that email is registered, reset instructions have been sent." }, status: :ok
