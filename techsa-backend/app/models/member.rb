@@ -12,6 +12,7 @@ class Member < ApplicationRecord
   validates :first_name, :last_name, :student_id, presence: true
   validates :student_id,          uniqueness: { case_sensitive: false }
   validates :registration_number, uniqueness: true, allow_nil: true
+  validates :phone_number,        uniqueness: true, allow_blank: true
   validates :position,            presence: true, if: -> { member_type_executive? }
   validates :position,            length: { maximum: 100 }, allow_blank: true
   validates :executive_number,    uniqueness: true, allow_nil: true

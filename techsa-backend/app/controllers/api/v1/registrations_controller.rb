@@ -20,6 +20,14 @@ module Api
           end
         end
 
+        # Check for duplicate registration by full name (case-insensitive)
+        first = member.first_name.to_s.strip.downcase
+        last  = member.last_name.to_s.strip.downcase
+        if Member.where("LOWER(TRIM(first_name)) = ? AND LOWER(TRIM(last_name)) = ?", first, last).exists?
+          render json: { errors: ["An account with this name already exists. If you have forgotten your password, use the reset link on the login page."] }, status: :unprocessable_entity
+          return
+        end
+
         saved = false
         ActiveRecord::Base.transaction do
           if member.save
