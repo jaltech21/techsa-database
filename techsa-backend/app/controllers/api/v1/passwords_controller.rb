@@ -20,8 +20,8 @@ module Api
             reset_password_sent_at: Time.now.utc
           )
           reset_url = "#{ENV['FRONTEND_URL']}/reset-password?token=#{raw_token}"
-          Rails.logger.info("[PasswordReset] reset_url=#{reset_url.inspect} api_key_present=#{ENV['RESEND_API_KEY'].present?}")
-          deliver_via_resend(member, reset_url)
+          Rails.logger.info("[PasswordReset] reset_url=#{reset_url.inspect} api_key_present=#{ENV['BREVO_API_KEY'].present?}")
+          deliver_via_brevo(member, reset_url)
         end
 
         render json: { message: "If that email is registered, reset instructions have been sent." }, status: :ok
@@ -47,29 +47,29 @@ module Api
         params.require(:member).permit(:password, :password_confirmation, :reset_password_token)
       end
 
-      def deliver_via_resend(member, reset_url)
-        uri  = URI("https://api.resend.com/emails")
+      def deliver_via_brevo(member, reset_url)
+        uri  = URI("https://api.brevo.com/v3/smtp/email")
         http = Net::HTTP.new(uri.host, uri.port)
         http.use_ssl = true
 
         request = Net::HTTP::Post.new(uri)
-        request["Authorization"] = "Bearer #{ENV['RESEND_API_KEY']}"
-        request["Content-Type"]  = "application/json"
+        request["api-key"]      = ENV["BREVO_API_KEY"]
+        request["Content-Type"] = "application/json"
         request.body = {
-          from:    "TECHSA <onboarding@resend.dev>",
-          to:      member.email,
-          subject: "Reset your TECHSA password",
-          html:    reset_email_html(member.first_name, reset_url)
+          sender:      { name: "TECHSA", email: "techsa.unimtech.edu@gmail.com" },
+          to:          [{ email: member.email, name: "#{member.first_name} #{member.last_name}" }],
+          subject:     "Reset your TECHSA password",
+          htmlContent: reset_email_html(member.first_name, reset_url)
         }.to_json
 
         response = http.request(request)
         if (200..299).include?(response.code.to_i)
-          Rails.logger.info("[PasswordReset] Resend email sent to #{member.email} (status=#{response.code})")
+          Rails.logger.info("[PasswordReset] Brevo email sent to #{member.email} (status=#{response.code})")
         else
-          Rails.logger.error("[PasswordReset] Resend API error #{response.code}: #{response.body}")
+          Rails.logger.error("[PasswordReset] Brevo API error #{response.code}: #{response.body}")
         end
       rescue StandardError => e
-        Rails.logger.error("[PasswordReset] Resend request failed: #{e.class} - #{e.message}")
+        Rails.logger.error("[PasswordReset] Brevo request failed: #{e.class} - #{e.message}")
       end
 
       def reset_email_html(name, reset_url)
