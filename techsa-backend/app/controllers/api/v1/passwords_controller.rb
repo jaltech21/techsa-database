@@ -56,7 +56,7 @@ module Api
         request["api-key"]      = ENV["BREVO_API_KEY"]
         request["Content-Type"] = "application/json"
         request.body = {
-          sender:      { name: "TECHSA", email: "techsa.unimtech.edu@gmail.com" },
+          sender:      { name: "TECHSA", email: "osmanjalloh098@gmail.com" },
           to:          [{ email: member.email, name: "#{member.first_name} #{member.last_name}" }],
           subject:     "Reset your TECHSA password",
           htmlContent: reset_email_html(member.first_name, reset_url)
