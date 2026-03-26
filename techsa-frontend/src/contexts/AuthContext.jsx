@@ -26,6 +26,8 @@ export function AuthProvider({ children }) {
     setCurrentUser(member);
   };
 
+  const updateUser = (member) => setCurrentUser(member);
+
   const logout = async () => {
     try {
       await authApi.logout();
@@ -38,7 +40,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ currentUser, login, logout, loading }}>
+    <AuthContext.Provider value={{ currentUser, login, logout, updateUser, loading }}>
       {children}
     </AuthContext.Provider>
   );

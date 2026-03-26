@@ -36,6 +36,7 @@ export const authApi = {
     api.put("/api/v1/members/password", {
       member: { reset_password_token: token, password, password_confirmation: passwordConfirmation },
     }),
+  updateProfile: (data) => api.patch("/api/v1/members/profile", { member: data }),
 };
 
 export const passkeyApi = {

@@ -1,6 +1,15 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { authApi } from "../services/api";
+import { useToast } from "../contexts/ToastContext";
+
+const INTERESTS = [
+  { label: "Programming / Software Development", icon: "💻" },
+  { label: "Networking / Cybersecurity", icon: "🔒" },
+  { label: "Graphics & UI/UX Design", icon: "🎨" },
+  { label: "Hardware / Electronics", icon: "🔧" },
+];
 
 // ─── Icon ───────────────────────────────────────────────────────
 function Icon({ name, className = "w-5 h-5" }) {
@@ -150,10 +159,76 @@ function Sidebar({ active, setActive, currentUser, onLogout, open, onClose }) {
 
 // ─── Dashboard page ─────────────────────────────────────────────
 export default function Dashboard() {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, updateUser } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const [active, setActive] = useState("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [editForm, setEditForm] = useState({});
+  const [showNewPassword, setShowNewPassword] = useState(false);
+
+  function startEdit() {
+    setEditForm({
+      phone_number:      currentUser?.phone_number      ?? "",
+      email:             currentUser?.email             ?? "",
+      residential_area:  currentUser?.residential_area  ?? "",
+      emergency_contact: currentUser?.emergency_contact ?? "",
+      areas_of_interest: currentUser?.areas_of_interest ?? [],
+      other_interests:   currentUser?.other_interests   ?? "",
+      password:          "",
+      password_confirmation: "",
+    });
+    setEditing(true);
+  }
+
+  function cancelEdit() {
+    setEditing(false);
+    setEditForm({});
+  }
+
+  function handleEditChange(e) {
+    setEditForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  }
+
+  function toggleInterest(label) {
+    setEditForm((prev) => ({
+      ...prev,
+      areas_of_interest: prev.areas_of_interest.includes(label)
+        ? prev.areas_of_interest.filter((i) => i !== label)
+        : [...prev.areas_of_interest, label],
+    }));
+  }
+
+  async function handleSaveProfile(e) {
+    e.preventDefault();
+    if (editForm.password && editForm.password.length < 6) {
+      showToast("New password must be at least 6 characters.", "error");
+      return;
+    }
+    if (editForm.password && editForm.password !== editForm.password_confirmation) {
+      showToast("Passwords do not match.", "error");
+      return;
+    }
+    setSaving(true);
+    try {
+      const payload = { ...editForm };
+      if (!payload.password) {
+        delete payload.password;
+        delete payload.password_confirmation;
+      }
+      const res = await authApi.updateProfile(payload);
+      updateUser(res.data.member);
+      setEditing(false);
+      showToast("Profile updated successfully.", "success");
+    } catch (err) {
+      const msgs = err.response?.data?.errors;
+      showToast(Array.isArray(msgs) ? msgs[0] : "Failed to update profile.", "error");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   const statusActive = currentUser?.status === "active";
   const statusCls = statusActive
@@ -276,25 +351,189 @@ export default function Dashboard() {
           )}
 
           {active === "personal" && (
-            <SectionCard title="Personal Information">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-6">
-                <Field label="First Name"        value={currentUser?.first_name} />
-                <Field label="Last Name"         value={currentUser?.last_name} />
-                <Field label="Student ID"        value={currentUser?.student_id} />
-                <Field label="Department"        value={currentUser?.department} />
-                <Field label="Level / Year"      value={currentUser?.level} />
-                <Field label="Gender"
-                  value={currentUser?.gender
-                    ? currentUser.gender.charAt(0).toUpperCase() + currentUser.gender.slice(1)
-                    : null}
-                />
-                <Field label="Date of Birth"     value={currentUser?.date_of_birth} />
-                <Field label="Email Address"     value={currentUser?.email} />
-                <Field label="Phone Number"      value={currentUser?.phone_number} />
-                <Field label="Residential Area"  value={currentUser?.residential_area} />
-                <Field label="Emergency Contact" value={currentUser?.emergency_contact} />
-              </div>
-            </SectionCard>
+            <div className="space-y-5">
+              {!editing ? (
+                <SectionCard title="Personal Information">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-6">
+                    <Field label="First Name"        value={currentUser?.first_name} />
+                    <Field label="Last Name"         value={currentUser?.last_name} />
+                    <Field label="Student ID"        value={currentUser?.student_id} />
+                    <Field label="Department"        value={currentUser?.department} />
+                    <Field label="Level / Year"      value={currentUser?.level} />
+                    <Field label="Gender"
+                      value={currentUser?.gender
+                        ? currentUser.gender.charAt(0).toUpperCase() + currentUser.gender.slice(1)
+                        : null}
+                    />
+                    <Field label="Date of Birth"     value={currentUser?.date_of_birth} />
+                    <Field label="Email Address"     value={currentUser?.email} />
+                    <Field label="Phone Number"      value={currentUser?.phone_number} />
+                    <Field label="Residential Area"  value={currentUser?.residential_area} />
+                    <Field label="Emergency Contact" value={currentUser?.emergency_contact} />
+                  </div>
+                  <div className="mt-6 pt-5 border-t border-gray-100">
+                    <button
+                      onClick={startEdit}
+                      className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-colors shadow-sm shadow-indigo-200"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      Edit Profile
+                    </button>
+                  </div>
+                </SectionCard>
+              ) : (
+                <form onSubmit={handleSaveProfile} className="space-y-5">
+                  {/* Locked fields notice */}
+                  <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                    <span className="text-base shrink-0">🔒</span>
+                    <p className="text-xs text-gray-500 font-medium">Name, Student ID, Department, Level and Gender can only be changed by an administrator.</p>
+                  </div>
+
+                  {/* Read-only locked fields */}
+                  <SectionCard title="Locked Information">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-6">
+                      <Field label="First Name"   value={currentUser?.first_name} />
+                      <Field label="Last Name"    value={currentUser?.last_name} />
+                      <Field label="Student ID"   value={currentUser?.student_id} />
+                      <Field label="Department"   value={currentUser?.department} />
+                      <Field label="Level / Year" value={currentUser?.level} />
+                      <Field label="Gender"
+                        value={currentUser?.gender
+                          ? currentUser.gender.charAt(0).toUpperCase() + currentUser.gender.slice(1)
+                          : null}
+                      />
+                      <Field label="Date of Birth" value={currentUser?.date_of_birth} />
+                    </div>
+                  </SectionCard>
+
+                  {/* Editable contact fields */}
+                  <SectionCard title="Contact & Location">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {[
+                        { name: "email",             label: "Email Address",    type: "email" },
+                        { name: "phone_number",       label: "Phone Number",     type: "tel"   },
+                        { name: "residential_area",   label: "Residential Area", type: "text"  },
+                        { name: "emergency_contact",  label: "Emergency Contact",type: "text"  },
+                      ].map(({ name, label, type }) => (
+                        <div key={name}>
+                          <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">{label}</label>
+                          <input
+                            type={type}
+                            name={name}
+                            value={editForm[name]}
+                            onChange={handleEditChange}
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-transparent transition-all"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </SectionCard>
+
+                  {/* Editable interests */}
+                  <SectionCard title="Areas of Interest">
+                    <div className="flex flex-wrap gap-2.5 mb-3">
+                      {INTERESTS.map(({ label, icon }) => {
+                        const on = editForm.areas_of_interest?.includes(label);
+                        return (
+                          <button
+                            type="button"
+                            key={label}
+                            onClick={() => toggleInterest(label)}
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border-2 text-xs font-semibold transition-all ${
+                              on
+                                ? "border-indigo-600 bg-indigo-50 text-indigo-700"
+                                : "border-gray-200 bg-gray-50 text-gray-500 hover:border-indigo-300"
+                            }`}
+                          >
+                            <span>{icon}</span>{label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Other Interests</label>
+                      <input
+                        type="text"
+                        name="other_interests"
+                        value={editForm.other_interests}
+                        onChange={handleEditChange}
+                        placeholder="e.g. Robotics, AI, Game Dev…"
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-transparent transition-all"
+                      />
+                    </div>
+                  </SectionCard>
+
+                  {/* Change password */}
+                  <SectionCard title="Change Password">
+                    <p className="text-xs text-gray-400 mb-3">Leave blank to keep your current password.</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">New Password</label>
+                        <div className="relative">
+                          <input
+                            type={showNewPassword ? "text" : "password"}
+                            name="password"
+                            value={editForm.password}
+                            onChange={handleEditChange}
+                            placeholder="Min. 6 characters"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-transparent transition-all"
+                          />
+                          <button type="button" onClick={() => setShowNewPassword((v) => !v)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            {showNewPassword
+                              ? <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
+                              : <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                            }
+                          </button>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Confirm Password</label>
+                        <input
+                          type={showNewPassword ? "text" : "password"}
+                          name="password_confirmation"
+                          value={editForm.password_confirmation}
+                          onChange={handleEditChange}
+                          placeholder="Repeat new password"
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-transparent transition-all"
+                        />
+                      </div>
+                    </div>
+                  </SectionCard>
+
+                  {/* Action buttons */}
+                  <div className="flex items-center gap-3 justify-end">
+                    <button
+                      type="button"
+                      onClick={cancelEdit}
+                      disabled={saving}
+                      className="px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={saving}
+                      className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-bold px-6 py-2.5 rounded-xl transition-colors shadow-sm shadow-indigo-200"
+                    >
+                      {saving ? (
+                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                      {saving ? "Saving…" : "Save Changes"}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
           )}
 
           {active === "membership" && (

@@ -9,8 +9,9 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
-      get  "members/me",       to: "members#me"
-      post "passkeys/validate", to: "passkeys#validate"
+      get   "members/me",      to: "members#me"
+      patch "members/profile", to: "api/v1/profiles#update"
+      post  "passkeys/validate", to: "passkeys#validate"
 
       namespace :admin do
         resources :members,  only: %i[index update]
