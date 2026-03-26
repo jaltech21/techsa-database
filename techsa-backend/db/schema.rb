@@ -10,9 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_03_23_000001) do
+ActiveRecord::Schema[7.2].define(version: 2026_03_25_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "executive_passkeys", force: :cascade do |t|
+    t.string "token", null: false
+    t.boolean "used", default: false, null: false
+    t.string "used_by_email"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["token"], name: "index_executive_passkeys_on_token", unique: true
+  end
 
   create_table "jwt_denylist", force: :cascade do |t|
     t.string "jti", null: false
@@ -43,9 +52,13 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_23_000001) do
     t.string "member_type", default: "general", null: false
     t.string "position"
     t.string "executive_number"
+    t.string "reset_password_token"
+    t.datetime "reset_password_sent_at"
     t.index ["email"], name: "index_members_on_email", unique: true
     t.index ["executive_number"], name: "index_members_on_executive_number", unique: true
+    t.index ["phone_number"], name: "index_members_on_phone_number", unique: true
     t.index ["registration_number"], name: "index_members_on_registration_number", unique: true
+    t.index ["reset_password_token"], name: "index_members_on_reset_password_token", unique: true
     t.index ["student_id"], name: "index_members_on_student_id", unique: true
   end
 end
