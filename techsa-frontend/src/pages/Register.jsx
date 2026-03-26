@@ -539,22 +539,19 @@ export default function Register() {
                   </svg>
                 </button>
               ) : (
-                <button
-                  type="submit"
-                  disabled={loading || !agreed}
-                  className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl text-sm shadow-lg shadow-indigo-200 transition-all"
-                >
-                  {loading ? (
-                    <><Spinner size="sm" /> Submitting…</>
-                  ) : (
-                    <>
-                      Submit Application
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                      </svg>
-                    </>
-                  )}
-                </button>
+                <div className="flex-1 flex flex-col gap-2">
+                  <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                    <span className="text-base shrink-0">🔒</span>
+                    <p className="text-xs text-amber-700 font-semibold leading-snug">Registration is currently closed. We will announce when it reopens.</p>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled
+                    className="flex-1 flex items-center justify-center gap-2 bg-gray-200 cursor-not-allowed text-gray-400 font-bold py-3 rounded-xl text-sm"
+                  >
+                    Submit Application
+                  </button>
+                </div>
               )}
             </div>
 

@@ -126,12 +126,12 @@ export default function LandingPage() {
           >
             Sign In
           </Link>
-          <Link
-            to="/register"
-            className="bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-400 hover:to-violet-500 text-white text-sm font-bold px-4 sm:px-5 py-2.5 rounded-xl shadow-lg shadow-indigo-900/60 transition-all"
+          <span
+            title="Registration is currently closed"
+            className="bg-gray-700/60 text-gray-400 text-sm font-bold px-4 sm:px-5 py-2.5 rounded-xl cursor-not-allowed select-none"
           >
             Join Now
-          </Link>
+          </span>
         </div>
       </nav>
 
@@ -143,9 +143,9 @@ export default function LandingPage() {
           className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full px-4 py-1.5 mb-8 animate-fade-up"
           style={{ animationDelay: "0.1s" }}
         >
-          <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          <span className="text-indigo-300 text-xs font-semibold tracking-widest uppercase">
-            Now Accepting Memberships
+          <span className="w-2 h-2 rounded-full bg-amber-400" />
+          <span className="text-amber-300 text-xs font-semibold tracking-widest uppercase">
+            Registration Currently Closed
           </span>
         </div>
 
@@ -195,21 +195,12 @@ export default function LandingPage() {
           className="flex items-center gap-4 flex-wrap justify-center animate-fade-up"
           style={{ animationDelay: "0.6s" }}
         >
-          <Link
-            to="/register"
-            className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold px-8 py-4 rounded-2xl shadow-2xl shadow-indigo-900/70 transition-all text-sm group"
+          <span
+            title="Registration is currently closed"
+            className="flex items-center gap-2 bg-gray-700/50 text-gray-400 font-bold px-8 py-4 rounded-2xl border border-white/5 text-sm cursor-not-allowed select-none"
           >
-            Become a Member
-            <svg
-              className="w-4 h-4 group-hover:translate-x-0.5 transition-transform"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </Link>
+            🔒 Registration Closed
+          </span>
 
           <Link
             to="/login"
