@@ -8,6 +8,27 @@ import Spinner from "../components/Spinner";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+const BLOCKED_DOMAINS = [
+  "example.com", "test.com", "fake.com", "sample.com",
+  "mailinator.com", "tempmail.com", "yopmail.com", "guerrillamail.com",
+  "10minutemail.com", "throwam.com", "trashmail.com", "sharklasers.com",
+  "dispostable.com", "maildrop.cc", "spam4.me", "getairmail.com",
+];
+
+const ALLOWED_DOMAINS = [
+  "gmail.com", "yahoo.com", "hotmail.com", "outlook.com",
+  "icloud.com", "live.com", "me.com", "protonmail.com",
+  "unimtech.edu", "edu.sl",
+];
+
+function isEmailValid(email) {
+  if (!EMAIL_RE.test(email)) return { ok: false, msg: "Please enter a valid email address." };
+  const domain = email.split("@")[1]?.toLowerCase();
+  if (BLOCKED_DOMAINS.includes(domain)) return { ok: false, msg: "Please use a real email address (not a test or disposable one)." };
+  if (!ALLOWED_DOMAINS.includes(domain)) return { ok: false, msg: `Email domain "@${domain}" is not accepted. Please use a Gmail, Yahoo, Outlook or institutional address.` };
+  return { ok: true, msg: "" };
+}
+
 export default function Login() {
   const { login } = useAuth();
   const { showToast } = useToast();
@@ -18,14 +39,15 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [emailTouched, setEmailTouched] = useState(false);
 
-  const emailError = emailTouched && form.email && !EMAIL_RE.test(form.email);
+  const emailValidation = isEmailValid(form.email);
+  const emailError = emailTouched && form.email && !emailValidation.ok;
 
   const handleChange = (e) =>
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!EMAIL_RE.test(form.email)) {
+    if (!isEmailValid(form.email).ok) {
       setEmailTouched(true);
       showToast("Please enter a valid email address.", "error");
       return;
@@ -79,7 +101,7 @@ export default function Login() {
                 placeholder="you@example.com"
               />
               {emailError && (
-                <p className="text-xs text-red-500 mt-1.5 font-medium">Please enter a valid email address.</p>
+                <p className="text-xs text-red-500 mt-1.5 font-medium">{emailValidation.msg}</p>
               )}
             </div>
 

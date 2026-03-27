@@ -27,6 +27,27 @@ const inp = "w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-
 const inpError = "w-full bg-gray-50 border border-red-400 rounded-xl px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-300 focus:bg-white focus:border-transparent transition-all";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+const BLOCKED_DOMAINS = [
+  "example.com", "test.com", "fake.com", "sample.com",
+  "mailinator.com", "tempmail.com", "yopmail.com", "guerrillamail.com",
+  "10minutemail.com", "throwam.com", "trashmail.com", "sharklasers.com",
+  "dispostable.com", "maildrop.cc", "spam4.me", "getairmail.com",
+];
+
+const ALLOWED_DOMAINS = [
+  "gmail.com", "yahoo.com", "hotmail.com", "outlook.com",
+  "icloud.com", "live.com", "me.com", "protonmail.com",
+  "unimtech.edu", "edu.sl",
+];
+
+function isEmailValid(email) {
+  if (!EMAIL_RE.test(email)) return { ok: false, msg: "Please enter a valid email address." };
+  const domain = email.split("@")[1]?.toLowerCase();
+  if (BLOCKED_DOMAINS.includes(domain)) return { ok: false, msg: "Please use a real email address (not a test or disposable one)." };
+  if (!ALLOWED_DOMAINS.includes(domain)) return { ok: false, msg: `Email domain "@${domain}" is not accepted. Please use a Gmail, Yahoo, Outlook or institutional address.` };
+  return { ok: true, msg: "" };
+}
+
 function Label({ children, required }) {
   return (
     <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
@@ -65,7 +86,7 @@ function validateStep(step, form) {
     return (
       form.phone_number.trim() &&
       form.email.trim() &&
-      EMAIL_RE.test(form.email) &&
+      isEmailValid(form.email).ok &&
       form.residential_area.trim()
     );
   }
@@ -383,10 +404,10 @@ export default function Register() {
                         onBlur={() => setEmailTouched(true)}
                         autoComplete="email"
                         placeholder="you@example.com"
-                        className={emailTouched && form.email && !EMAIL_RE.test(form.email) ? inpError : inp}
+                        className={emailTouched && form.email && !isEmailValid(form.email).ok ? inpError : inp}
                       />
-                      {emailTouched && form.email && !EMAIL_RE.test(form.email) && (
-                        <p className="text-xs text-red-500 mt-1.5 font-medium">Please enter a valid email address.</p>
+                      {emailTouched && form.email && !isEmailValid(form.email).ok && (
+                        <p className="text-xs text-red-500 mt-1.5 font-medium">{isEmailValid(form.email).msg}</p>
                       )}
                     </div>
                   </div>
